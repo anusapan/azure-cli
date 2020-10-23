@@ -84,14 +84,17 @@ def iot_dps_get(client, dps_name, resource_group_name=None):
     return client.iot_dps_resource.get(dps_name, resource_group_name)
 
 
-def iot_dps_create(cmd, client, dps_name, resource_group_name, location=None, sku=IotDpsSku.s1.value, unit=1):
+def iot_dps_create(cmd, client, dps_name, resource_group_name, location=None, sku=IotDpsSku.s1.value, unit=1, tags=None):
     cli_ctx = cmd.cli_ctx
     _check_dps_name_availability(client.iot_dps_resource, dps_name)
     location = _ensure_location(cli_ctx, resource_group_name, location)
     dps_property = IotDpsPropertiesDescription()
+    if tags:
+        tags = validate_key_value_pairs(tags)
     dps_description = ProvisioningServiceDescription(location=location,
                                                      properties=dps_property,
-                                                     sku=IotDpsSkuInfo(name=sku, capacity=unit))
+                                                     sku=IotDpsSkuInfo(name=sku, capacity=unit),
+                                                     tags=tags)
     return client.iot_dps_resource.create_or_update(resource_group_name, dps_name, dps_description)
 
 
@@ -389,8 +392,7 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
                    fileupload_sas_ttl=1,
                    fileupload_storage_authentication_type=None,
                    fileupload_storage_container_uri=None,
-                   min_tls_version=None,
-                   tags=None):
+                   min_tls_version=None):
     from datetime import timedelta
     cli_ctx = cmd.cli_ctx
     if enable_fileupload_notifications:
@@ -405,8 +407,6 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
         raise CLIError('Key-based authentication requires a connection string.')
     if identity_based_file_upload and not fileupload_storage_container_uri:
         raise CLIError('Identity-based authentication requires a storage container uri (--fileupload-storage-container-uri, --fcu).')
-    if tags:
-        tags = validate_key_value_pairs(tags)
     location = _ensure_location(cli_ctx, resource_group_name, location)
     sku = IotHubSkuInfo(name=sku, capacity=unit)
 
@@ -439,8 +439,8 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
 
     hub_description = IotHubDescription(location=location,
                                         sku=sku,
-                                        properties=properties,
-                                        tags=tags)
+                                        properties=properties)
+
     return client.iot_hub_resource.create_or_update(resource_group_name, hub_name, hub_description)
 
 
