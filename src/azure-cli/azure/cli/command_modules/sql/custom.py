@@ -958,8 +958,8 @@ def db_create_replica(
         database_name,
         server_name,
         resource_group_name,
-        # Replica must have the same database name as the source db
         partner_server_name,
+        partner_database_name=None,
         partner_resource_group_name=None,
         no_wait=False,
         **kwargs):
@@ -971,6 +971,7 @@ def db_create_replica(
 
     # Determine optional values
     partner_resource_group_name = partner_resource_group_name or resource_group_name
+    partner_database_name = partner_database_name or database_name
 
     # Set create mode
     kwargs['create_mode'] = CreateMode.secondary.value
@@ -1000,7 +1001,7 @@ def db_create_replica(
         cmd.cli_ctx,
         client,
         DatabaseIdentity(cmd.cli_ctx, database_name, server_name, resource_group_name),
-        DatabaseIdentity(cmd.cli_ctx, database_name, partner_server_name, partner_resource_group_name),
+        DatabaseIdentity(cmd.cli_ctx, partner_database_name, partner_server_name, partner_resource_group_name),
         no_wait,
         **kwargs)
 
@@ -3441,6 +3442,41 @@ def encryption_protector_update(
         server_key_name=key_name
     )
 
+#####
+#           sql server aad-only
+#####
+
+
+def server_aad_only_disable(
+        client,
+        resource_group_name,
+        server_name):
+    '''
+    Disables a servers aad-only setting
+    '''
+
+    return client.create_or_update(
+        resource_group_name=resource_group_name,
+        server_name=server_name,
+        azure_ad_only_authentication=False
+    )
+
+
+def server_aad_only_enable(
+        client,
+        resource_group_name,
+        server_name):
+    '''
+    Enables a servers aad-only setting
+    '''
+
+    return client.create_or_update(
+        resource_group_name=resource_group_name,
+        server_name=server_name,
+        azure_ad_only_authentication=True
+    )
+
+
 ###############################################
 #                sql managed instance         #
 ###############################################
@@ -3717,10 +3753,47 @@ def mi_ad_admin_delete(
     '''
     Deletes a managed instance active directory administrator.
     '''
+
     return client.delete(
         resource_group_name=resource_group_name,
         managed_instance_name=managed_instance_name
     )
+
+
+#####
+#           sql managed instance aad-only
+#####
+
+
+def mi_aad_only_disable(
+        client,
+        resource_group_name,
+        managed_instance_name):
+    '''
+    Disables the managed instance AAD-only setting
+    '''
+
+    return client.create_or_update(
+        resource_group_name=resource_group_name,
+        managed_instance_name=managed_instance_name,
+        azure_ad_only_authentication=False
+    )
+
+
+def mi_aad_only_enable(
+        client,
+        resource_group_name,
+        managed_instance_name):
+    '''
+    Enables the AAD-only setting
+    '''
+
+    return client.create_or_update(
+        resource_group_name=resource_group_name,
+        managed_instance_name=managed_instance_name,
+        azure_ad_only_authentication=True
+    )
+
 
 ###############################################
 #                sql managed db               #
