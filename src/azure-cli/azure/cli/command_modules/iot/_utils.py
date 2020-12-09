@@ -5,7 +5,6 @@
 
 from os.path import exists, join
 import base64
-import random
 from OpenSSL import crypto
 
 
@@ -53,17 +52,11 @@ def open_certificate(certificate_path):
     return certificate
 
 
-def generateKey(byteLength=32):
-    key = ''
-    while byteLength > 0:
-        key += chr(random.randrange(1, 128))
-        byteLength -= 1
-    return base64.b64encode(key.encode()).decode('utf-8')
+def generate_key(byte_length=32):
+    """
+    Generate cryptographically secure device key.
+    """
+    import secrets
 
-
-def validate_key_value_pairs(string):
-    result = None
-    if string:
-        kv_list = [x for x in string.split(";") if "=" in x]  # key-value pairs
-        result = dict(x.split("=", 1) for x in kv_list)
-    return result
+    token_bytes = secrets.token_bytes(byte_length)
+    return base64.b64encode(token_bytes).decode("utf8")
